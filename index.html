@@ -16,8 +16,64 @@
     <h4>
         Jinmo Huang, Sonia Sunil, Bandar Qadan, Kellan Liu
     </h4>
+    <svg id="graph" height="800" width="1000"></svg>
     <script>
+        const svg = d3.select("#graph");
+        const width = svg.attr("width");
+        const height = svg.attr("height");
+        const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+        const mapWidth = width - margin.left - margin.right;
+        const mapHeight = height - margin.top - margin.bottom;
 
+        const requestData = async () => {
+            const circuits = await d3.csv('./data/circuits.csv');
+            const races = await d3.csv('./data/races.csv');
+            const drivers = await d3.csv('./data/drivers.csv');
+            const race_results = await d3.csv('./data/results.csv');
+            const lap_times = await d3.csv('./data/lap_times.csv');
+
+            let newData = races.map(item => {
+                return {
+                    ...item,
+                    ...circuits.find(innerItem => innerItem.circuitId === item.circuitId)
+                }
+            })
+
+            let racerData = []
+            racerData = race_results.map(item => {
+                return {
+                    ...item,
+                    ...drivers.find(innerItem => innerItem.driverId === item.driverId)
+                }
+            })
+
+            let grouped_results = new Map();
+            racerData.forEach(item => {
+                const key = item.raceId;
+                const collection = grouped_results.get(key);
+
+                if (!collection) {
+                    grouped_results.set(key, [item]);
+                } else {
+                    collection.push(item)
+                }
+            })
+
+            let grouped = Object.fromEntries(grouped_results);
+
+
+            let final_data = newData.map(item => {
+                return {
+                    ...item,
+                    raceId: grouped[item.raceId]
+                }
+            })
+
+            console.log("final_data", final_data)
+
+        }
+
+        requestData();
     </script>
 </body>
 
