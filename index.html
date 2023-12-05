@@ -55,22 +55,36 @@
                 if (!collection) {
                     grouped_results.set(key, [item]);
                 } else {
-                    collection.push(item)
+                    collection.push(item);
                 }
             })
 
             let grouped = Object.fromEntries(grouped_results);
 
 
-            let final_data = newData.map(item => {
+            let data = newData.map(item => {
                 return {
                     ...item,
                     raceId: grouped[item.raceId]
                 }
             })
 
-            console.log("final_data", final_data)
+            final_data = []
+            data = data.forEach((obj, index) => {
+                if (obj.raceId !== undefined) {
+                    final_data.push(obj);
+                }
+            });
 
+
+            final_data.forEach((data, i) => {
+                data.lat = +data.lat;
+                data.lng = +data.lng;
+                data.raceId.forEach((d) => {
+                    d.rank = +d.rank;
+                })
+            });
+            console.log("final_data", final_data);
         }
 
         requestData();
