@@ -10,6 +10,9 @@
 </head>
 
 <body>
+    <div id="tooltip"
+        style="position: absolute; visibility: hidden; padding: 10px; background-color: white; border: 1px solid black;">
+    </div>
     <h2>
         F1 Race Map and rank in 2023
     </h2>
@@ -176,10 +179,9 @@
                     .domain(extent) // Data space
                     .range([20, mapWidth - 50]); // Screen space
 
-
-                svg.selectAll('racers.circle')
-                    .data(data)
-                    .enter()
+                const circles = svg.select(' .racers').selectAll('circle')
+                    .data(data);
+                circles.enter()
                     .append('circle')
                     .attr('cx', d => xScale(d.positionOrder))
                     .attr('cy', 50) // Arbitrary y-position
@@ -190,6 +192,15 @@
                             .duration(100)
                             .attr('stroke-width', 3)
                             .attr('stroke', 'black');
+                        const newContent = `Last Name: ${d.surname}<br>` +
+                            `First Name: ${d.forename}<br>` +
+                            `Rank: ${d.positionOrder}`;
+
+                        d3.select("#tooltip")
+                            .style("visibility", "visible")
+                            .html(newContent)
+                            .style("left", (event.pageX + 10) + "px")
+                            .style("top", (event.pageY - 10) + "px");
 
 
                     })
@@ -197,8 +208,10 @@
                         d3.select(this).transition()
                             .duration(100)
                             .attr('stroke', 'transparent')
-                            .attr('stroke-width', 'none')
+                            .attr('stroke-width', 'none');
+                        d3.select("#tooltip").style("visibility", "hidden");
                     })
+                circles.exit().remove();
             }
         }
 
