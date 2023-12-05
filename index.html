@@ -16,7 +16,10 @@
     <h4>
         Jinmo Huang, Sonia Sunil, Bandar Qadan, Kellan Liu
     </h4>
-    <svg id="graph" height="800" width="1000"></svg>
+    <svg id="graph" height="800" width="1000">
+        <text id="label" x="590" y="5" text-anchor="end" alignment-baseline="hanging"></text>
+    </svg>
+
     <script>
         const svg = d3.select("#graph");
         const width = svg.attr("width");
@@ -31,6 +34,9 @@
             const drivers = await d3.csv('./data/drivers.csv');
             const race_results = await d3.csv('./data/results.csv');
             const lap_times = await d3.csv('./data/lap_times.csv');
+            let worldMap = await d3.json('./data/World_Map.geojson');
+
+            console.log(worldMap);
 
             let newData = races.map(item => {
                 return {
@@ -85,6 +91,66 @@
                 })
             });
             console.log("final_data", final_data);
+            worldMap = {
+                ...worldMap,
+                features: worldMap.features.filter(feature => feature.properties.name !== 'Antarctica')
+            };
+
+            let projection = d3.geoMercator()
+                .fitSize([mapWidth, mapHeight], worldMap)
+
+            let path = d3.geoPath().projection(projection);
+
+            let geoMap = null;
+
+            if (!geoMap) {
+                geoMap = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            }
+
+            geoMap.selectAll('path')
+                .data(worldMap.features)
+                .join('path')
+                .attr('class', 'path')
+                .attr('d', path)
+                .attr('fill', '#5e5757')
+                .attr('stroke', '#FF0002');
+
+            final_data.forEach(d => {
+                d.Position = projection([d.lng, d.lat]);
+            });
+
+            geoMap.selectAll("circle")
+                .data(final_data)
+                .join("circle")
+                .attr("r", 3)
+                .attr("fill", 'yellow')
+                .attr("opacity", 0.4)
+                .attr("cx", d => d.Position[0])
+                .attr("cy", d => d.Position[1])
+                .on("mouseover", function (event, d) {
+                    d3.select(this).transition()
+                        .duration(100)
+                        .attr('stroke-width', 3.5)
+                        .attr('stroke', 'black');
+                    let title = d3.select(this).datum()['name']
+                    let location = d3.select(this).datum()['location']
+                    let country = d3.select(this).datum()['country']
+
+                    d3.select('#label')
+                        .text(country + ", " + location + ": " + title);
+                })
+                .on("mouseout", function () {
+                    d3.select(this).transition()
+                        .duration(100)
+                        .attr('stroke', 'transparent');
+                    d3.select('#label')
+                        .text('');
+                })
+                .on("click", function (event, d) {
+
+                });
+
+
         }
 
         requestData();
