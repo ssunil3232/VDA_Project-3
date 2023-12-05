@@ -9,8 +9,9 @@
     <script src="https://d3js.org/topojson.v3.min.js"></script>
     <style>
         body {
-            background: linear-gradient(to right, #feb47b, #efefef);
+            background: linear-gradient(to right, #efefef, #feb47b);
             /* Replace with your desired gradient */
+            /* background-color: #efefef; */
         }
     </style>
 </head>
@@ -19,12 +20,16 @@
     <div id="tooltip"
         style="position: absolute; visibility: hidden; padding: 10px; background-color: white; border: 1px solid black;">
     </div>
+
     <h2>
         F1 Race Map and rank in 2023
     </h2>
     <h4>
         Jinmo Huang, Sonia Sunil, Bandar Qadan, Kellan Liu
-    </h4>
+    </h4> <br>
+    <select id="yearSelector">
+        <!-- Options will be added dynamically -->
+    </select> <br>
     <svg id="graph" height="800" width="1000">
         <text id="label" x="590" y="5" text-anchor="end" alignment-baseline="hanging"></text>
     </svg>
@@ -84,34 +89,34 @@
                 }
             })
 
-            final_data = []
+            nonfinal_data = []
             data = data.forEach((obj, index) => {
                 if (obj.raceId !== undefined) {
-                    if (obj.year === "2023") {
-                        let race_result = obj.raceId;
-                        let updated_result = []
-                        race_result.forEach(race => {
+                    let race_result = obj.raceId;
+                    let updated_result = []
+                    race_result.forEach(race => {
 
-                            if (race.rank !== "0") {
-                                updated_result.push(race);
-                            }
-                        })
+                        if (race.rank !== "0") {
+                            updated_result.push(race);
+                        }
+                    })
 
-                        obj.raceId = updated_result;
-                        final_data.push(obj);
-                    }
+                    obj.raceId = updated_result;
+                    nonfinal_data.push(obj);
+
                 }
             });
 
 
-            final_data.forEach((data, i) => {
+            nonfinal_data.forEach((data, i) => {
                 data.lat = +data.lat;
                 data.lng = +data.lng;
                 data.raceId.forEach((d) => {
                     d.positionOrder = +d.positionOrder;
                 })
             });
-            console.log("final_data", final_data);
+            console.log("final_data", nonfinal_data);
+            let final_data = [...nonfinal_data];
             worldMap = {
                 ...worldMap,
                 features: worldMap.features.filter(feature => feature.properties.name !== 'Antarctica')
@@ -127,98 +132,126 @@
             if (!geoMap) {
                 geoMap = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             }
-
             geoMap.selectAll('path')
                 .data(worldMap.features)
                 .join('path')
                 .attr('class', 'path')
                 .attr('d', path)
-                .attr('fill', '#5e5757')
+                .attr('fill', 'black')
                 .attr('stroke', '#FF0002');
 
             final_data.forEach(d => {
                 d.Position = projection([d.lng, d.lat]);
             });
 
-            let circle_Data = []
+            let circle_Data = [];
 
-            geoMap.selectAll("circle")
-                .data(final_data)
-                .join("circle")
-                .attr("r", 8)
-                .attr("fill", 'yellow')
-                .attr("opacity", 0.8)
-                .attr("cx", d => d.Position[0])
-                .attr("cy", d => d.Position[1])
-                .on("mouseover", function (event, d) {
-                    d3.select(this).transition()
-                        .duration(100)
-                        .attr('stroke-width', 3.5)
-                        .attr('stroke', 'black');
-                    let title = d3.select(this).datum()['name']
-                    let location = d3.select(this).datum()['location']
-                    let country = d3.select(this).datum()['country']
+            let uniqueYears = [...new Set(final_data.map(race => race.year))];
+            // Assuming 'races' contains year data
+            const yearSelector = d3.select("#yearSelector");
+            uniqueYears.forEach(year => {
+                yearSelector.append("option")
+                    .text(year)
+                    .attr("value", year);
+            });
 
-                    d3.select('#label')
-                        .text(country + ", " + location + ": " + title);
+            yearSelector.on("change", function (event) {
+                const selectedYear = event.target.value;
+                updateVisualization(selectedYear);
+                svg.select('.racers').selectAll('circle').remove();
+            });
+
+            function updateVisualization(year) {
+                final_data = [];
+                nonfinal_data.forEach(item => {
+                    if (item.year === year) {
+                        final_data.push(item)
+                    }
                 })
-                .on("mouseout", function () {
-                    d3.select(this).transition()
-                        .duration(100)
-                        .attr('stroke', 'transparent');
-                    d3.select('#label')
-                        .text('');
-                })
-                .on("click", function (event, d) {
-                    circle_Data = d3.select(this).datum()['raceId']
-                    load_race(circle_Data)
-                })
-                .on("mouseup",)
-
-            svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("class", "racers");
-
-            function load_race(data) {
-                console.log("data", data)
-
-                const extent = d3.extent(data, d => d.positionOrder);
-                const xScale = d3.scaleLinear()
-                    .domain(extent) // Data space
-                    .range([20, mapWidth - 50]); // Screen space
-
-                const circles = svg.select(' .racers').selectAll('circle')
-                    .data(data);
-                circles.enter()
-                    .append('circle')
-                    .attr('cx', d => xScale(d.positionOrder))
-                    .attr('cy', 50) // Arbitrary y-position
-                    .attr('r', 10) // Radius of circle
-                    .attr('fill', 'blue')
+                geoMap.selectAll("circle")
+                    .data(final_data)
+                    .join("circle")
+                    .attr("r", 8)
+                    .attr("fill", 'yellow')
+                    .attr("opacity", 0.8)
+                    .attr("cx", d => d.Position[0])
+                    .attr("cy", d => d.Position[1])
                     .on("mouseover", function (event, d) {
                         d3.select(this).transition()
                             .duration(100)
-                            .attr('stroke-width', 3)
+                            .attr('stroke-width', 3.5)
                             .attr('stroke', 'black');
-                        const newContent = `Last Name: ${d.surname}<br>` +
-                            `First Name: ${d.forename}<br>` +
-                            `Rank: ${d.positionOrder}`;
+                        let title = d3.select(this).datum()['name']
+                        let location = d3.select(this).datum()['location']
+                        let country = d3.select(this).datum()['country']
 
-                        d3.select("#tooltip")
-                            .style("visibility", "visible")
-                            .html(newContent)
-                            .style("left", (event.pageX + 10) + "px")
-                            .style("top", (event.pageY - 10) + "px");
-
-
+                        d3.select('#label')
+                            .text(country + ", " + location + ": " + title);
                     })
                     .on("mouseout", function () {
                         d3.select(this).transition()
                             .duration(100)
-                            .attr('stroke', 'transparent')
-                            .attr('stroke-width', 'none');
-                        d3.select("#tooltip").style("visibility", "hidden");
+                            .attr('stroke', 'transparent');
+                        d3.select('#label')
+                            .text('');
                     })
-                circles.exit().remove();
+                    .on("click", function (event, d) {
+                        circle_Data = d3.select(this).datum()['raceId']
+                        load_race(circle_Data)
+                    })
+                    .on("mouseup",)
+
+                svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("class", "racers");
+
+                function load_race(data) {
+
+                    svg.select('.racers').selectAll('circle').remove();
+                    console.log("data", data)
+
+                    const extent = d3.extent(data, d => d.positionOrder);
+                    const xScale = d3.scaleLinear()
+                        .domain(extent) // Data space
+                        .range([20, mapWidth - 50]); // Screen space
+
+                    const circles = svg.select(' .racers').selectAll('circle')
+                        .data(data);
+                    circles.enter()
+                        .append('circle')
+                        .attr('cx', d => xScale(d.positionOrder))
+                        .attr('cy', 50) // Arbitrary y-position
+                        .attr('r', 10) // Radius of circle
+                        .attr('fill', 'blue')
+                        .on("mouseover", function (event, d) {
+                            d3.select(this).transition()
+                                .duration(100)
+                                .attr('stroke-width', 3)
+                                .attr('stroke', 'black');
+                            const newContent = `Last Name: ${d.surname}<br>` +
+                                `First Name: ${d.forename}<br>` +
+                                `Rank: ${d.positionOrder}`;
+
+                            d3.select("#tooltip")
+                                .style("visibility", "visible")
+                                .html(newContent)
+                                .style("left", (event.pageX + 10) + "px")
+                                .style("top", (event.pageY - 10) + "px");
+
+
+                        })
+                        .on("mouseout", function () {
+                            d3.select(this).transition()
+                                .duration(100)
+                                .attr('stroke', 'transparent')
+                                .attr('stroke-width', 'none');
+                            d3.select("#tooltip").style("visibility", "hidden");
+                        })
+                    circles.exit().remove();
+                }
             }
+            const initialYear = uniqueYears[0]; // or any other default year
+            updateVisualization(initialYear)
+
+
         }
 
         requestData();
