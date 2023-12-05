@@ -78,8 +78,19 @@
             final_data = []
             data = data.forEach((obj, index) => {
                 if (obj.raceId !== undefined) {
-                    if (obj.year === "2023")
+                    if (obj.year === "2023") {
+                        let race_result = obj.raceId;
+                        let updated_result = []
+                        race_result.forEach(race => {
+
+                            if (race.rank !== "0") {
+                                updated_result.push(race);
+                            }
+                        })
+
+                        obj.raceId = updated_result;
                         final_data.push(obj);
+                    }
                 }
             });
 
@@ -88,7 +99,7 @@
                 data.lat = +data.lat;
                 data.lng = +data.lng;
                 data.raceId.forEach((d) => {
-                    d.position = +d.position;
+                    d.positionOrder = +d.positionOrder;
                 })
             });
             console.log("final_data", final_data);
@@ -120,6 +131,8 @@
                 d.Position = projection([d.lng, d.lat]);
             });
 
+            let circle_Data = []
+
             geoMap.selectAll("circle")
                 .data(final_data)
                 .join("circle")
@@ -148,14 +161,44 @@
                         .text('');
                 })
                 .on("click", function (event, d) {
-                    load_race(d.raceId)
-                });
+                    circle_Data = d3.select(this).datum()['raceId']
+                    load_race(circle_Data)
+                })
+                .on("mouseup",)
+
+            svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("class", "racers");
 
             function load_race(data) {
                 console.log("data", data)
 
+                const extent = d3.extent(data, d => d.positionOrder);
+                const xScale = d3.scaleLinear()
+                    .domain(extent) // Data space
+                    .range([20, mapWidth - 50]); // Screen space
 
 
+                svg.selectAll('racers.circle')
+                    .data(data)
+                    .enter()
+                    .append('circle')
+                    .attr('cx', d => xScale(d.positionOrder))
+                    .attr('cy', 50) // Arbitrary y-position
+                    .attr('r', 10) // Radius of circle
+                    .attr('fill', 'blue')
+                    .on("mouseover", function (event, d) {
+                        d3.select(this).transition()
+                            .duration(100)
+                            .attr('stroke-width', 3)
+                            .attr('stroke', 'black');
+
+
+                    })
+                    .on("mouseout", function () {
+                        d3.select(this).transition()
+                            .duration(100)
+                            .attr('stroke', 'transparent')
+                            .attr('stroke-width', 'none')
+                    })
             }
         }
 
