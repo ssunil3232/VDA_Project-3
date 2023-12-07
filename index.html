@@ -22,12 +22,12 @@
     </div>
 
     <h2>
-        F1 Race Map and rank in 2023
+        F1 Race Map and Driver Rank from 1950 to 2023
     </h2>
     <h4>
         Jinmo Huang, Sonia Sunil, Bandar Qadan, Kellan Liu
     </h4> <br>
-    Select the year, then click on the races to see ranks for each player.
+    Select the year, then click on the races to see driver ranks for the circuit you selected.
     <select id="yearSelector">
         <!-- Options will be added dynamically -->
     </select> <br>
@@ -58,15 +58,15 @@
                     ...item,
                     ...circuits.find(innerItem => innerItem.circuitId === item.circuitId)
                 }
-            })
+            });
 
-            let racerData = []
+            let racerData = [];
             racerData = race_results.map(item => {
                 return {
                     ...item,
                     ...drivers.find(innerItem => innerItem.driverId === item.driverId)
                 }
-            })
+            });
 
             let grouped_results = new Map();
             racerData.forEach(item => {
@@ -78,7 +78,7 @@
                 } else {
                     collection.push(item);
                 }
-            })
+            });
 
             let grouped = Object.fromEntries(grouped_results);
 
@@ -88,9 +88,9 @@
                     ...item,
                     raceId: grouped[item.raceId]
                 }
-            })
+            });
 
-            nonfinal_data = []
+            nonfinal_data = [];
             data = data.forEach((obj, index) => {
                 if (obj.raceId !== undefined) {
                     let race_result = obj.raceId;
@@ -124,7 +124,7 @@
             };
 
             let projection = d3.geoMercator()
-                .fitSize([mapWidth, mapHeight], worldMap)
+                .fitSize([mapWidth, mapHeight], worldMap);
 
             let path = d3.geoPath().projection(projection);
 
@@ -182,9 +182,9 @@
                             .duration(100)
                             .attr('stroke-width', 3.5)
                             .attr('stroke', 'black');
-                        let title = d3.select(this).datum()['name']
-                        let location = d3.select(this).datum()['location']
-                        let country = d3.select(this).datum()['country']
+                        let title = d3.select(this).datum()['name'];
+                        let location = d3.select(this).datum()['location'];
+                        let country = d3.select(this).datum()['country'];
 
                         d3.select('#label')
                             .text(country + ", " + location + ": " + title);
@@ -197,10 +197,9 @@
                             .text('');
                     })
                     .on("click", function (event, d) {
-                        circle_Data = d3.select(this).datum()['raceId']
-                        load_race(circle_Data)
+                        circle_Data = d3.select(this).datum()['raceId'];
+                        load_race(circle_Data);
                     })
-                    .on("mouseup",)
 
                 svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("class", "racers");
 
@@ -251,7 +250,6 @@
             }
             const initialYear = uniqueYears[0]; // or any other default year
             updateVisualization(initialYear)
-
 
         }
 
