@@ -7,11 +7,6 @@
     <title>VDA Group Project 3</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://d3js.org/topojson.v3.min.js"></script>
-    <style>
-        body {
-            background: linear-gradient(to right, #efefef, #feb47b);
-        }
-    </style>
 </head>
 
 <body>
@@ -19,13 +14,12 @@
         style="position: absolute; visibility: hidden; padding: 10px; background-color: white; border: 1px solid black;">
     </div>
 
-    <h2>
-        F1 Race Map and Driver Rank from 1950 to 2023
-    </h2>
-    <h4>
-        Jinmo Huang, Sonia Sunil, Bandar Qadan, Kellan Liu
-    </h4> <br>
-    Select the year, then click on the races to see driver ranks for the circuit you selected.
+    <div class="title-container">
+        <img src="https://logodownload.org/wp-content/uploads/2016/11/formula-1-logo-5-3.png" class="title-icon">
+        <h2>F1 Race Map and Driver Rank from 1950 to 2023</h2>
+        <h4>Jinmo Huang, Sonia Sunil, Bandar Qadan, Kellan Liu</h4> 
+    </div>
+<br>Select the year, then click on the races to see driver ranks for the circuit you selected.
     <select id="yearSelector">
         <!-- Options will be added dynamically -->
     </select> <br>
@@ -136,8 +130,8 @@
                 .join('path')
                 .attr('class', 'path')
                 .attr('d', path)
-                .attr('fill', 'black')
-                .attr('stroke', '#FF0002');
+                .attr('fill', 'white')
+                .attr('stroke', '#868686');
 
             final_data.forEach(d => {
                 d.Position = projection([d.lng, d.lat]);
@@ -171,7 +165,7 @@
                     .data(final_data)
                     .join("circle")
                     .attr("r", 8)
-                    .attr("fill", 'yellow')
+                    .attr("fill", '#EE0000')
                     .attr("opacity", 0.8)
                     .attr("cx", d => d.Position[0])
                     .attr("cy", d => d.Position[1])
@@ -256,3 +250,23 @@
 </body>
 
 </html>
+
+<style>
+    body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(to right, #efefef, #feb47b);
+}
+
+    .title-container {
+        text-align: center;
+    }
+    .title-icon {
+    width: 200px; 
+    height: auto; 
+    margin: 10px; 
+}
+</style>
