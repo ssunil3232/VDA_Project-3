@@ -38,6 +38,8 @@
         const mapWidth = width - margin.left - margin.right;
         const mapHeight = height - margin.top - margin.bottom;
 
+        let selectedCircle = null; 
+
         const requestData = async () => {
             const circuits = await d3.csv('./data/circuits.csv');
             const races = await d3.csv('./data/races.csv');
@@ -143,7 +145,6 @@
             let circle_Data = [];
 
             let uniqueYears = [...new Set(final_data.map(race => race.year))];
-            // Assuming 'races' contains year data
             const yearSelector = d3.select("#yearSelector");
             uniqueYears.forEach(year => {
                 yearSelector.append("option")
@@ -151,11 +152,6 @@
                     .attr("value", year);
             });
 
-            // yearSelector.on("change", function (event) {
-            //     const selectedYear = event.target.value;
-            //     updateVisualization(selectedYear);
-            //     svg.select('.racers').selectAll('circle').remove();
-            // });
             yearSelector.on("change", function (event) {
                     const selectedYear = event.target.value;
                     updateVisualization(selectedYear);
@@ -164,6 +160,12 @@
                 });
 
             function updateVisualization(year) {
+                if (selectedCircle) {
+                    selectedCircle.attr('stroke', 'transparent');
+                    d3.select('#label').text('');
+                    selectedCircle = null;
+                }
+
                 final_data = [];
                 nonfinal_data.forEach(item => {
                     if (item.year === year) {
@@ -179,31 +181,40 @@
                     .attr("cx", d => d.Position[0])
                     .attr("cy", d => d.Position[1])
                     .on("mouseover", function (event, d) {
-                        d3.select(this).transition()
-                            .duration(100)
-                            .attr('stroke-width', 3.5)
-                            .attr('stroke', 'black');
+                        if (this !== selectedCircle?.node()) {
+                            d3.select(this).transition()
+                                .duration(100)
+                                .attr('stroke-width', 3.5)
+                                .attr('stroke', 'black');
+                        }
                         let title = d3.select(this).datum()['name'];
                         let location = d3.select(this).datum()['location'];
                         let country = d3.select(this).datum()['country'];
-
                         d3.select('#label')
                             .text(country + ", " + location + ": " + title);
                     })
                     .on("mouseout", function () {
-                        d3.select(this).transition()
-                            .duration(100)
-                            .attr('stroke', 'transparent');
-                        d3.select('#label')
-                            .text('');
+                        if (this !== selectedCircle?.node()) {
+                            d3.select(this).transition()
+                                .duration(100)
+                                .attr('stroke', 'transparent');
+                            d3.select('#label').text('');
+                        }
                     })
                     .on("click", function (event, d) {
-                        let title = d3.select(this).datum()['name'];
-                        let location = d3.select(this).datum()['location'];
-                        let country = d3.select(this).datum()['country'];
+                        if (selectedCircle) {
+                            selectedCircle.attr('stroke', 'transparent');
+                        }
+                        selectedCircle = d3.select(this);
+                        selectedCircle.transition()
+                            .duration(100)
+                            .attr('stroke-width', 3.5)
+                            .attr('stroke', 'black');
+                        let title = d['name'];
+                        let location = d['location'];
+                        let country = d['country'];
                         d3.select('#label').text(country + ", " + location + ": " + title);
-
-                        circle_Data = d3.select(this).datum()['raceId'];
+                        circle_Data = d['raceId'];
                         load_race(circle_Data);
                     })
 
@@ -242,8 +253,6 @@
                                 .style('filter', 'drop-shadow(2px 4px 4px #efefef)') 
                                 .style("left", (event.pageX + 10) + "px")
                                 .style("top", (event.pageY - 10) + "px");
-
-
                         })
                         .on("mouseout", function () {
                             d3.select(this).transition()
@@ -254,7 +263,7 @@
                         })
                     
                     const texts = svg.select('.racers').selectAll('text')
-                    .data(data);
+                        .data(data);
 
                     texts.enter()
                         .append('text')
@@ -262,7 +271,28 @@
                         .attr('y', 55) 
                         .attr('text-anchor', 'middle')
                         .style('fill', d => d.positionOrder <= 3 ? 'red' : 'darkgrey') 
-                        .text(d => `${d.positionOrder}`);
+                        .text(d => `${d.positionOrder}`)
+                        .on("mouseover", function (event, d) {
+                            d3.select(this).transition()
+                                .duration(100)
+                            const newContent = `Last Name: ${d.surname}<br>` +
+                                `First Name: ${d.forename}<br>` +
+                                `Rank: ${d.positionOrder}`;
+
+                            d3.select("#tooltip")
+                                .style("visibility", "visible")
+                                .html(newContent)
+                                .style('filter', 'drop-shadow(2px 4px 4px #efefef)') 
+                                .style("left", (event.pageX + 10) + "px")
+                                .style("top", (event.pageY - 10) + "px");
+                        })
+                        .on("mouseout", function () {
+                            d3.select(this).transition()
+                                .duration(100)
+                                .attr('stroke', 'transparent')
+                                .attr('stroke-width', 'none');
+                            d3.select("#tooltip").style("visibility", "hidden");
+                        })
                     }
                 }
                             const initialYear = uniqueYears[0]; 
