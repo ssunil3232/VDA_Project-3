@@ -155,7 +155,7 @@
             yearSelector.on("change", function (event) {
                     const selectedYear = event.target.value;
                     updateVisualization(selectedYear);
-                    svg.select('.racers').selectAll('circle').remove();
+                    svg.select('.racers').selectAll('g').remove();
                     d3.select('#label').text('');
                 });
 
@@ -221,79 +221,61 @@
                 svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("class", "racers");
 
                 function load_race(data) {
+                svg.select('.racers').selectAll('g').remove();
+                console.log("data", data)
 
-                    svg.select('.racers').selectAll('circle').remove();
-                    svg.select('.racers').selectAll('text').remove();
-                    console.log("data", data)
+                const extent = d3.extent(data, d => d.positionOrder);
+                const xScale = d3.scaleLinear()
+                                 .domain(extent) // Data space
+                                 .range([20, mapWidth - 50]); // Screen space
 
-                    const extent = d3.extent(data, d => d.positionOrder);
-                    const xScale = d3.scaleLinear()
-                        .domain(extent) // Data space
-                        .range([20, mapWidth - 50]); // Screen space
+                const groups = svg.select('.racers').selectAll('g')
+                    .data(data)
+                    .enter()
+                    .append('g')
+                    .attr('transform', d => `translate(${xScale(d.positionOrder)}, 50)`) // 设置组的位置
+                    .on("mouseover", function (event, d) {
+                        showTooltip(event, d);
+                        d3.select(this).select('circle').transition()
+                            .duration(100)
+                            .attr('stroke', 'red');
+                        d3.select(this).select('text').transition()
+                            .duration(100)
+                            .attr('fill', 'red');
+                    })
+                    .on("mouseout", function () {
+                        d3.select("#tooltip").style("visibility", "hidden");
+                        d3.select(this).select('circle').transition()
+                            .duration(100)
+                            .attr('stroke', 'transparent');
+                        d3.select(this).select('text').transition()
+                            .duration(100)
+                            .attr('fill', 'black');
+                });
 
-                    const circles = svg.select(' .racers').selectAll('circle')
-                        .data(data);
-                    circles.enter()
-                        .append('circle')
-                        .attr('cx', d => xScale(d.positionOrder))
-                        .attr('cy', 50) // Arbitrary y-position
-                        .attr('r', 15) // Radius of circle
-                        .attr('fill', 'white') 
-                        .style('filter', 'drop-shadow(2px 4px 4px #efefef)') 
-                        .on("mouseover", function (event, d) {
-                            d3.select(this).transition()
-                                .duration(100)
-                            const newContent = `Last Name: ${d.surname}<br>` +
-                                `First Name: ${d.forename}<br>` +
-                                `Rank: ${d.positionOrder}`;
+                groups.append('circle')
+                      .attr('r', 15) 
+                      .attr('fill', 'white');
 
-                            d3.select("#tooltip")
-                                .style("visibility", "visible")
-                                .html(newContent)
-                                .style('filter', 'drop-shadow(2px 4px 4px #efefef)') 
-                                .style("left", (event.pageX + 10) + "px")
-                                .style("top", (event.pageY - 10) + "px");
-                        })
-                        .on("mouseout", function () {
-                            d3.select(this).transition()
-                                .duration(100)
-                                .attr('stroke', 'transparent')
-                                .attr('stroke-width', 'none');
-                            d3.select("#tooltip").style("visibility", "hidden");
-                        })
-                    
-                    const texts = svg.select('.racers').selectAll('text')
-                        .data(data);
+                groups.append('text')
+                      .attr('y', 5) 
+                      .attr('text-anchor', 'middle')
+                      .text(d => `${d.positionOrder}`);
 
-                    texts.enter()
-                        .append('text')
-                        .attr('x', d => xScale(d.positionOrder))
-                        .attr('y', 55) 
-                        .attr('text-anchor', 'middle')
-                        .style('fill', d => d.positionOrder <= 3 ? 'red' : 'darkgrey') 
-                        .text(d => `${d.positionOrder}`)
-                        .on("mouseover", function (event, d) {
-                            d3.select(this).transition()
-                                .duration(100)
-                            const newContent = `Last Name: ${d.surname}<br>` +
-                                `First Name: ${d.forename}<br>` +
-                                `Rank: ${d.positionOrder}`;
+                function showTooltip(event, d) {
+                    const newContent = `Last Name: ${d.surname}<br>` +
+                        `First Name: ${d.forename}<br>` +
+                        `Rank: ${d.positionOrder}<br>` +
+                        `Nationality: ${d.nationality}`;
 
-                            d3.select("#tooltip")
-                                .style("visibility", "visible")
-                                .html(newContent)
-                                .style('filter', 'drop-shadow(2px 4px 4px #efefef)') 
-                                .style("left", (event.pageX + 10) + "px")
-                                .style("top", (event.pageY - 10) + "px");
-                        })
-                        .on("mouseout", function () {
-                            d3.select(this).transition()
-                                .duration(100)
-                                .attr('stroke', 'transparent')
-                                .attr('stroke-width', 'none');
-                            d3.select("#tooltip").style("visibility", "hidden");
-                        })
-                    }
+                    d3.select("#tooltip")
+                        .style("visibility", "visible")
+                        .html(newContent)
+                        .style("left", (event.pageX + 10) + "px")
+                        .style("top", (event.pageY - 10) + "px");
+                }
+                group.exit().remove();
+            }
                 }
                             const initialYear = uniqueYears[0]; 
                             updateVisualization(initialYear)
@@ -301,8 +283,8 @@
                                         
 
                     requestData();
-                    circles.exit().remove();
-                    texts.exit().remove();
+                    
+                    
 
     </script>
 </body>
