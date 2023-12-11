@@ -17,7 +17,6 @@
     <div class="title-container">
         <img src="https://logodownload.org/wp-content/uploads/2016/11/formula-1-logo-5-3.png" class="title-icon">
         <h2>F1 Race Map and Driver Rank from 1950 to 2023</h2>
-        <h4>Jinmo Huang, Sonia Sunil, Bandar Qadan, Kellan Liu</h4> 
     </div>
 
     <div class="selector">
@@ -29,6 +28,10 @@
     <svg id="graph" height="800" width="1000">
         <text id="label" x="590" y="5" text-anchor="end" alignment-baseline="hanging"></text>
     </svg>
+
+    <div class="footer">
+        <p>Created by Jinmo Huang, Sonia Sunil, Bandar Qadan, Kellan Liu</p>
+    </div>
 
     <script>
         const svg = d3.select("#graph");
@@ -339,4 +342,15 @@
         border: none;
         text-align: center; 
 }
+    .footer {
+        text-align: center;
+        margin-top: 50px;
+        padding: 20px;
+        color: #333;
+        font-size: 14px;
+    }
+    
+    p{
+        color: #333;
+    }
 </style>
