@@ -19,10 +19,13 @@
         <h2>F1 Race Map and Driver Rank from 1950 to 2023</h2>
         <h4>Jinmo Huang, Sonia Sunil, Bandar Qadan, Kellan Liu</h4> 
     </div>
-<br>Select the year, then click on the races to see driver ranks for the circuit you selected.
-    <select id="yearSelector">
-        <!-- Options will be added dynamically -->
-    </select> <br>
+
+    <div class="selector">
+        <p>Select the year, then click on the races to see driver ranks for the circuit you selected.</p>
+    <select id="yearSelector" class="select-style"></select>
+        <!-- Options will be added dynamically --> 
+    </div>
+
     <svg id="graph" height="800" width="1000">
         <text id="label" x="590" y="5" text-anchor="end" alignment-baseline="hanging"></text>
     </svg>
@@ -148,11 +151,17 @@
                     .attr("value", year);
             });
 
+            // yearSelector.on("change", function (event) {
+            //     const selectedYear = event.target.value;
+            //     updateVisualization(selectedYear);
+            //     svg.select('.racers').selectAll('circle').remove();
+            // });
             yearSelector.on("change", function (event) {
-                const selectedYear = event.target.value;
-                updateVisualization(selectedYear);
-                svg.select('.racers').selectAll('circle').remove();
-            });
+                    const selectedYear = event.target.value;
+                    updateVisualization(selectedYear);
+                    svg.select('.racers').selectAll('circle').remove();
+                    d3.select('#label').text('');
+                });
 
             function updateVisualization(year) {
                 final_data = [];
@@ -189,6 +198,11 @@
                             .text('');
                     })
                     .on("click", function (event, d) {
+                        let title = d3.select(this).datum()['name'];
+                        let location = d3.select(this).datum()['location'];
+                        let country = d3.select(this).datum()['country'];
+                        d3.select('#label').text(country + ", " + location + ": " + title);
+
                         circle_Data = d3.select(this).datum()['raceId'];
                         load_race(circle_Data);
                     })
@@ -198,6 +212,7 @@
                 function load_race(data) {
 
                     svg.select('.racers').selectAll('circle').remove();
+                    svg.select('.racers').selectAll('text').remove();
                     console.log("data", data)
 
                     const extent = d3.extent(data, d => d.positionOrder);
@@ -211,13 +226,12 @@
                         .append('circle')
                         .attr('cx', d => xScale(d.positionOrder))
                         .attr('cy', 50) // Arbitrary y-position
-                        .attr('r', 10) // Radius of circle
-                        .attr('fill', 'blue')
+                        .attr('r', 15) // Radius of circle
+                        .attr('fill', 'white') 
+                        .style('filter', 'drop-shadow(2px 4px 4px #efefef)') 
                         .on("mouseover", function (event, d) {
                             d3.select(this).transition()
                                 .duration(100)
-                                .attr('stroke-width', 3)
-                                .attr('stroke', 'black');
                             const newContent = `Last Name: ${d.surname}<br>` +
                                 `First Name: ${d.forename}<br>` +
                                 `Rank: ${d.positionOrder}`;
@@ -225,6 +239,7 @@
                             d3.select("#tooltip")
                                 .style("visibility", "visible")
                                 .html(newContent)
+                                .style('filter', 'drop-shadow(2px 4px 4px #efefef)') 
                                 .style("left", (event.pageX + 10) + "px")
                                 .style("top", (event.pageY - 10) + "px");
 
@@ -237,15 +252,28 @@
                                 .attr('stroke-width', 'none');
                             d3.select("#tooltip").style("visibility", "hidden");
                         })
-                    circles.exit().remove();
+                    
+                    const texts = svg.select('.racers').selectAll('text')
+                    .data(data);
+
+                    texts.enter()
+                        .append('text')
+                        .attr('x', d => xScale(d.positionOrder))
+                        .attr('y', 55) 
+                        .attr('text-anchor', 'middle')
+                        .style('fill', d => d.positionOrder <= 3 ? 'red' : 'darkgrey') 
+                        .text(d => `${d.positionOrder}`);
+                    }
                 }
-            }
-            const initialYear = uniqueYears[0]; // or any other default year
-            updateVisualization(initialYear)
+                            const initialYear = uniqueYears[0]; 
+                            updateVisualization(initialYear)
+                        }
+                                        
 
-        }
+                    requestData();
+                    circles.exit().remove();
+                    texts.exit().remove();
 
-        requestData();
     </script>
 </body>
 
@@ -253,20 +281,50 @@
 
 <style>
     body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    min-height: 100vh;
-    background: linear-gradient(to right, #efefef, #feb47b);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        min-height: 100vh;
+        background: #EFEFEF;
 }
 
     .title-container {
         text-align: center;
     }
+
     .title-icon {
-    width: 200px; 
-    height: auto; 
-    margin: 10px; 
+        width: 200px; 
+        height: auto; 
+        margin: 10px; 
+}
+    .selector{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    .select-style {
+        padding: 10px 15px;
+        border: 1px solid #ccc;
+        border-radius: 20px; 
+        background-color: white;
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        -webkit-appearance: none; 
+        -moz-appearance: none; 
+        appearance: none; 
+        font-size: 16px; 
+        color: #333; 
+        margin-top: 20px; 
+    }
+
+    #tooltip {
+        position: absolute;
+        visibility: hidden;
+        padding: 10px;
+        background-color: white;
+        border: none;
+        text-align: center; 
 }
 </style>
