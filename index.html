@@ -21,8 +21,8 @@
 
     <div class="selector">
         <p>Select the year, then click on the races to see driver ranks for the circuit you selected.</p>
-    <select id="yearSelector" class="select-style"></select>
-        <!-- Options will be added dynamically --> 
+        <select id="yearSelector" class="select-style"></select>
+        <!-- Options will be added dynamically -->
     </div>
 
     <svg id="graph" height="800" width="1000">
@@ -41,7 +41,7 @@
         const mapWidth = width - margin.left - margin.right;
         const mapHeight = height - margin.top - margin.bottom;
 
-        let selectedCircle = null; 
+        let selectedCircle = null;
 
         const requestData = async () => {
             const circuits = await d3.csv('./data/circuits.csv');
@@ -156,11 +156,11 @@
             });
 
             yearSelector.on("change", function (event) {
-                    const selectedYear = event.target.value;
-                    updateVisualization(selectedYear);
-                    svg.select('.racers').selectAll('g').remove();
-                    d3.select('#label').text('');
-                });
+                const selectedYear = event.target.value;
+                updateVisualization(selectedYear);
+                svg.select('.racers').selectAll('g').remove();
+                d3.select('#label').text('');
+            });
 
             function updateVisualization(year) {
                 if (selectedCircle) {
@@ -224,70 +224,70 @@
                 svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")").attr("class", "racers");
 
                 function load_race(data) {
-                svg.select('.racers').selectAll('g').remove();
-                console.log("data", data)
+                    svg.select('.racers').selectAll('g').remove();
+                    console.log("data", data)
 
-                const extent = d3.extent(data, d => d.positionOrder);
-                const xScale = d3.scaleLinear()
-                                 .domain(extent) // Data space
-                                 .range([20, mapWidth - 50]); // Screen space
+                    const extent = d3.extent(data, d => d.positionOrder);
+                    const xScale = d3.scaleLinear()
+                        .domain(extent) // Data space
+                        .range([20, mapWidth - 50]); // Screen space
 
-                const groups = svg.select('.racers').selectAll('g')
-                    .data(data)
-                    .enter()
-                    .append('g')
-                    .attr('transform', d => `translate(${xScale(d.positionOrder)}, 50)`) // 设置组的位置
-                    .on("mouseover", function (event, d) {
-                        showTooltip(event, d);
-                        d3.select(this).select('circle').transition()
-                            .duration(100)
-                            .attr('stroke', 'red');
-                        d3.select(this).select('text').transition()
-                            .duration(100)
-                            .attr('fill', 'red');
-                    })
-                    .on("mouseout", function () {
-                        d3.select("#tooltip").style("visibility", "hidden");
-                        d3.select(this).select('circle').transition()
-                            .duration(100)
-                            .attr('stroke', 'transparent');
-                        d3.select(this).select('text').transition()
-                            .duration(100)
-                            .attr('fill', 'black');
-                });
+                    const groups = svg.select('.racers').selectAll('g')
+                        .data(data)
+                        .enter()
+                        .append('g')
+                        .attr('transform', d => `translate(${xScale(d.positionOrder)}, 50)`) // 设置组的位置
+                        .on("mouseover", function (event, d) {
+                            showTooltip(event, d);
+                            d3.select(this).select('circle').transition()
+                                .duration(100)
+                                .attr('stroke', 'red');
+                            d3.select(this).select('text').transition()
+                                .duration(100)
+                                .attr('fill', 'red');
+                        })
+                        .on("mouseout", function () {
+                            d3.select("#tooltip").style("visibility", "hidden");
+                            d3.select(this).select('circle').transition()
+                                .duration(100)
+                                .attr('stroke', 'transparent');
+                            d3.select(this).select('text').transition()
+                                .duration(100)
+                                .attr('fill', 'black');
+                        });
 
-                groups.append('circle')
-                      .attr('r', 15) 
-                      .attr('fill', 'white');
+                    groups.append('circle')
+                        .attr('r', 15)
+                        .attr('fill', 'white');
 
-                groups.append('text')
-                      .attr('y', 5) 
-                      .attr('text-anchor', 'middle')
-                      .text(d => `${d.positionOrder}`);
+                    groups.append('text')
+                        .attr('y', 5)
+                        .attr('text-anchor', 'middle')
+                        .text(d => `${d.positionOrder}`);
 
-                function showTooltip(event, d) {
-                    const newContent = `Last Name: ${d.surname}<br>` +
-                        `First Name: ${d.forename}<br>` +
-                        `Rank: ${d.positionOrder}<br>` +
-                        `Nationality: ${d.nationality}`;
+                    function showTooltip(event, d) {
+                        const newContent = `Last Name: ${d.surname}<br>` +
+                            `First Name: ${d.forename}<br>` +
+                            `Rank: ${d.positionOrder}<br>` +
+                            `Nationality: ${d.nationality}`;
 
-                    d3.select("#tooltip")
-                        .style("visibility", "visible")
-                        .html(newContent)
-                        .style("left", (event.pageX + 10) + "px")
-                        .style("top", (event.pageY - 10) + "px");
+                        d3.select("#tooltip")
+                            .style("visibility", "visible")
+                            .html(newContent)
+                            .style("left", (event.pageX + 10) + "px")
+                            .style("top", (event.pageY - 10) + "px");
+                    }
+                    group.exit().remove();
                 }
-                group.exit().remove();
             }
-                }
-                            const initialYear = uniqueYears[0]; 
-                            updateVisualization(initialYear)
-                        }
-                                        
+            const initialYear = uniqueYears[0];
+            updateVisualization(initialYear)
+        }
 
-                    requestData();
-                    
-                    
+
+        requestData();
+
+
 
     </script>
 </body>
@@ -302,36 +302,38 @@
         flex-direction: column;
         min-height: 100vh;
         background: #EFEFEF;
-}
+    }
 
     .title-container {
         text-align: center;
     }
 
     .title-icon {
-        width: 200px; 
-        height: auto; 
-        margin: 10px; 
-}
-    .selector{
+        width: 200px;
+        height: auto;
+        margin: 10px;
+    }
+
+    .selector {
         display: flex;
         justify-content: center;
         align-items: center;
         flex-direction: column;
     }
+
     .select-style {
         padding: 10px 15px;
         border: 1px solid #ccc;
-        border-radius: 20px; 
+        border-radius: 20px;
         background-color: white;
         background-repeat: no-repeat;
         background-position: right 10px center;
-        -webkit-appearance: none; 
-        -moz-appearance: none; 
-        appearance: none; 
-        font-size: 16px; 
-        color: #333; 
-        margin-top: 20px; 
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        font-size: 16px;
+        color: #333;
+        margin-top: 20px;
     }
 
     #tooltip {
@@ -340,8 +342,9 @@
         padding: 10px;
         background-color: white;
         border: none;
-        text-align: center; 
-}
+        text-align: center;
+    }
+
     .footer {
         text-align: center;
         margin-top: 50px;
@@ -349,8 +352,8 @@
         color: #333;
         font-size: 14px;
     }
-    
-    p{
+
+    p {
         color: #333;
     }
 </style>
